@@ -1,0 +1,234 @@
+name: order-microservice
+
+networks:
+  internal:
+    internal: true
+  external:
+
+
+volumes:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:
+  pg-data:
+  redis-data:
+
+
+services:
+  kafka-1:
+    image: bitnami/kafka:4.0.0
+    container_name: kafka-1
+    hostname: kafka-1
+    networks: [internal, external]
+
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,HOST://:19092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-1:9092,HOST://${DOCKER_HOST_IP:-host.docker.internal}:19092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_MIN_INSYNC_REPLICAS=2
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+
+    volumes:
+      - kafka-1-data:/bitnami/kafka
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    healthcheck:
+      test: ["CMD-SHELL","kafka-broker-api-versions.sh --bootstrap-server kafka-1:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  kafka-2:
+    image: bitnami/kafka:4.0.0
+    container_name: kafka-2
+    hostname: kafka-2
+    networks: [internal, external]
+
+    environment:
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,HOST://:19092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-2:9092,HOST://${DOCKER_HOST_IP:-host.docker.internal}:19093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_MIN_INSYNC_REPLICAS=2
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+
+    volumes:
+      - kafka-2-data:/bitnami/kafka
+    ports:
+      - "19093:19092"
+    healthcheck:
+      test: ["CMD-SHELL","kafka-broker-api-versions.sh --bootstrap-server kafka-2:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  kafka-3:
+    image: bitnami/kafka:4.0.0
+    container_name: kafka-3
+    hostname: kafka-3
+    networks: [internal, external]
+
+    environment:
+      - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9092,HOST://:19092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-3:9092,HOST://${DOCKER_HOST_IP:-host.docker.internal}:19094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=${KAFKA_CLUSTER_ID}
+
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_MIN_INSYNC_REPLICAS=2
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+
+    volumes:
+      - kafka-3-data:/bitnami/kafka
+    ports:
+      - "19094:19092"
+    healthcheck:
+      test: ["CMD-SHELL","kafka-broker-api-versions.sh --bootstrap-server kafka-3:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+ 
+
+  order-database:
+    image: postgres:17.5-alpine3.22
+    container_name: order-database
+    hostname: order-database
+    networks: [internal]
+
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - ${DB_PORT}:5432
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5 
+      start_period: 5s
+  order-service:
+    image: ezzysoft/wb-tech-l0:${ORDER_SERVICE_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: if_not_present    
+
+    container_name: order-service
+    hostname: order-service
+
+    networks: [internal, external]
+
+    environment:
+      DB_HOST: order-database
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
+      KAFKA_BROKERS: kafka-1:9092;kafka-2:9092;kafka-3:9092
+      REDIS_HOST: order-cache
+      REDIS_PORT: ${REDIS_PORT}
+
+    ports: ["8081:8081"]
+    
+    depends_on:
+      order-database:
+        condition: service_healthy 
+
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+
+
+  order-cache:
+    image: redis:8.0.2-alpine
+    container_name: order-cache
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+
+    networks: [internal]
+    ports:
+      - ${REDIS_PORT}:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.2.0
+    hostname: kafka-ui
+    container_name: kafka-ui
+    networks: [internal, external]
+
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+    
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:9092
+    
+    ports:
+      - "8000:8080"
+  adminer:
+    image: adminer:latest
+    hostname: adminer
+    container_name: adminer
+    networks: [internal, external]
+
+    depends_on: [order-database]
+
+    ports:
+      - "8080:8080"

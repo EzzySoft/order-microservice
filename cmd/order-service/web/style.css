@@ -1,0 +1,139 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #22272b;
+  color: #f3f3f3;
+  padding: 24px;
+}
+
+h1, h2 {
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 50%;
+  background: #25292f;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 3px 18px #1114;
+}
+
+th, td {
+  border: none;
+  padding: 12px 16px;
+}
+
+th {
+  background: #333941;
+  color: #d8d8d8;
+  font-weight: 600;
+}
+
+#details {
+  margin-top: 32px;
+  background: #25292f;
+  padding: 28px 22px;
+  border-radius: 18px;
+  min-width: 340px;
+  box-shadow: 0 2px 8px #2226;
+}
+
+#order-form {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+input[type="text"] {
+  background: #20262b;
+  color: #fff;
+  border: 2px solid #373e47;
+  border-radius: 14px;
+  padding: 9px 16px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus {
+  border-color: #5290f5;
+}
+
+button {
+  background: #444bff;
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  padding: 10px 26px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 6px #202a;
+}
+button:hover {
+  background: #0057ff;
+  box-shadow: 0 4px 12px #2049b7aa;
+}
+
+.error {
+  color: #ff8585;
+  margin-left: 16px;
+  align-self: center;
+}
+
+.field {
+  color: #c0c7d1;
+  font-weight: 600;
+  padding-right: 10px;
+  min-width: 120px;
+}
+
+.value {
+  color: #fff;
+}
+
+ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+li {
+  margin-bottom: 2px;
+}
+
+.accordion-section {
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #21262b;
+  box-shadow: 0 2px 8px #2223;
+}
+.accordion-section input[type="checkbox"] {
+  display: none;
+}
+.accordion-section label {
+  display: block;
+  font-weight: 600;
+  padding: 14px 16px;
+  cursor: pointer;
+  background: #232930;
+  color: #74b6fd;
+  font-size: 1.16em;
+  border-bottom: 1px solid #252b33;
+  user-select: none;
+}
+.accordion-section .content {
+  max-height: 0;
+  overflow: hidden;
+  background: #23272d;
+  transition: max-height 0.25s cubic-bezier(.51,.06,.54,.95);
+  padding: 0 16px;
+}
+.accordion-section input:checked ~ .content {
+  max-height: 500px;
+  padding: 16px;
+  transition: max-height 0.35s cubic-bezier(.51,.06,.54,.95);
+}
